@@ -22,15 +22,15 @@ class ChatFrame(MyFrame):
 
         self.messagelabel = ttk.Label(self.mainframe, text="Answer : ")
         self.messagelabel.grid(column=0, row=1,sticky=W)
-        self.messagefield = ttk.Entry(self.mainframe, width=90, textvariable=self.model.currentMessage)
+        self.messagefield = ttk.Entry(self.mainframe, width=90, textvariable=self.model.currentmessage)
         self.messagefield.grid(column=1, row=1)
-        self.sendbutton = ttk.Button(self.mainframe,text="Send")
+        self.sendbutton = ttk.Button(self.mainframe,text="Send",command = self.model.sendMessage)
         self.sendbutton.grid(column=3,row=1)
 
+    
         self.root.bind('<Return>', self.onReturnPressed)
-
+        self.messagefield.focus()
         self.root.mainloop()
 
     def onReturnPressed(self, event):
-        messageToSend = Message(self.model.userNameString.get(),self.model.currentChannel.get(),self.model.currentMessage.get())
-        self.model.send()
+        self.model.sendMessage()

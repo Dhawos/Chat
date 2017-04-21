@@ -10,3 +10,6 @@ class MyFrame:
 
     def destroy(self):
         self.root.destroy()
+
+    def init(self):
+        raise NotImplementedError("Cannot call init method on MyFrame Class")

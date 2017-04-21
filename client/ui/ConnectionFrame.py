@@ -1,12 +1,13 @@
 from tkinter import *
 from tkinter import ttk
-from client.MyFrame import MyFrame
+
+from client.ui.MyFrame import MyFrame
+
 
 class ConnectionFrame(MyFrame):
-    title = "Connect"
 
-    def initConnectionFrame(self):
-        self.root.title(self.title)
+    def init(self):
+        self.root.title("Connect")
         self.mainframe = ttk.Frame(self.root, padding="3 3 12 12")
         self.mainframe.grid(column=0, row=0,)
 

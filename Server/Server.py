@@ -1,34 +1,40 @@
 import socket
-from threading import Thread
-from socketserver import ThreadingMixIn
+import threading
 
-
-# Multithreaded Python server : TCP Server Socket Thread Pool
-class ClientThread(Thread):
-    def __init__(self, ip, port):
-        Thread.__init__(self)
-        self.ip = ip
+class ThreadedServer(object):
+    def __init__(self, host, port):
+        self.host = host
         self.port = port
-        print("[+] New server socket thread started for " + ip + ":" + str(port))
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.sock.bind((self.host, self.port))
 
 
-# Multithreaded Python server : TCP Server Socket Program Stub
-TCP_IP = '127.0.0.1'
-TCP_PORT = 8080
+    def listen(self):
+        self.sock.listen(5)
+        while True:
+            client, address = self.sock.accept()
+            #client.settimeout(60)
+            threading.Thread(target = self.listenToClient,args = (client,address)).start()
 
-tcpServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-tcpServer.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-tcpServer.bind((TCP_IP, TCP_PORT))
-threads = []
+    def listenToClient(self, client, address):
+        print("[+] listening to " + str(address))
+        size = 1024
+        while True:
+            try:
+                data = client.recv(size)
+                if data:
+                    # Set the response to echo back the recieved data
+                    response = data
+                    client.send(response)
+                else:
+                    print("no data")
+                    #raise error('Client disconnected')
+            except:
+                client.close()
+                return False
 
-while True:
-    tcpServer.listen(4)
-    print
-    "Multithreaded Python server : Waiting for connections from TCP clients..."
-    (conn, (ip, port)) = tcpServer.accept()
-    newthread = ClientThread(ip, port)
-    newthread.start()
-    threads.append(newthread)
 
-for t in threads:
-    t.join()
+if __name__ == "__main__":
+    port_num = 8080
+    ThreadedServer('',port_num).listen()

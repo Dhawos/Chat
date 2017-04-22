@@ -68,6 +68,9 @@ class Client():
             except socket.timeout:
                 if not self.running:
                     self.client.close()
+            except EOFError:
+                exit()
+                print("Server unexpectedly closed the connection")
 
 
     def sendMessage(self):

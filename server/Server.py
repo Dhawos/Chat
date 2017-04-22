@@ -43,12 +43,15 @@ class ThreadedServer(object):
                 data = client.recv(size)
                 if data:
                     messageReceived = pickle.loads(data)
-                    for clientToSend in messageReceived.channel.clients:
+                    print(messageReceived)
+                    channel = next(filter(lambda x: x.name == messageReceived.channel, self.channels))
+                    for clientToSend in channel.clients:
                         clientToSend.send(pickle.dumps(messageReceived))
 
                 else:
                     raise Exception('Client disconnected')
-            except:
+            except Exception as ex:
+                print(ex)
                 client.close()
                 return False
 

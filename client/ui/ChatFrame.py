@@ -47,8 +47,7 @@ class ChatFrame(MyFrame):
 
     def notify(self):
         self.chatField.config(state=NORMAL)
-        for message in self.model.messages:
-            self.chatField.insert('end', str(message)+'\n')
-            self.mainframe.update()
+        self.chatField.insert('end', str(self.model.messages[len(self.model.messages)-1])+'\n')
         self.chatField.config(state=DISABLED)
+        #self.mainframe.update()
 

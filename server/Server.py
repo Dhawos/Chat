@@ -67,19 +67,25 @@ class ThreadedServer(object):
             clientToSend.send(pickle.dumps(message))
 
     def processCommand(self,commande):
-        splittedCommande = commande.message.split(" ")
-        method_to_call = getattr(self, splittedCommande[0])
-        if(len(splittedCommande) > 1):
-            arguments = splittedCommande[1].split(",")
-            dict = {}
-            for argument in arguments :
-                splitted_argument = argument.split(":")
-                key = splitted_argument[0]
-                value = splitted_argument[1]
-                dict[key] = value
-        dict["author"] = commande.author
-        dict["channel"] = commande.channel
-        return method_to_call(**dict)
+        try:
+            splittedCommande = commande.message.split(" ")
+            method_to_call = getattr(self, splittedCommande[0])
+            if(len(splittedCommande) > 1):
+                arguments = splittedCommande[1].split(",")
+                dict = {}
+                for argument in arguments :
+                    splitted_argument = argument.split(":")
+                    key = splitted_argument[0]
+                    value = splitted_argument[1]
+                    dict[key] = value
+            dict["author"] = commande.author
+            dict["channel"] = commande.channel
+            return method_to_call(**dict)
+        except IndexError:
+            print("Bad command input")
+        except AttributeError:
+            print ("No such command")
+
 
 if __name__ == "__main__":
     port_num = 8080

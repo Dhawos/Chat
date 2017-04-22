@@ -19,6 +19,7 @@ class ThreadedServer(object):
         self.sock.listen(5)
         while True:
             client, address = self.sock.accept()
+            username = pickle.dumps(client.recv(4096))
             client.send(pickle.dumps(self.channels))
             welcomeMessage = Message("SERVER",self.channels[0],"Bienvenue sur le serveur de chat !!")
             client.send(pickle.dumps(welcomeMessage))
@@ -67,7 +68,18 @@ class ThreadedServer(object):
     def processCommand(self,commande):
         splittedCommande = commande.message.split(" ")
         method_to_call = getattr(self, splittedCommande[0])
-        return method_to_call(channel=commande.channel)
+        if(len(splittedCommande) > 1):
+            arguments = splittedCommande[1].split(",")
+            dict = {}
+            for argument in arguments :
+                splitted_argument = argument.split(":")
+                key = splitted_argument[0]
+                value = splitted_argument[1]
+                dict[key] = value
+            dict["channel"] = commande.channel
+            return method_to_call(dict)
+        else:
+            return method_to_call(channel=commande.channel)
 
 if __name__ == "__main__":
     port_num = 8080

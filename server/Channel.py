@@ -5,7 +5,6 @@ class Channel():
     def __init__(self, name):
         self.name = name
         self.clients = []
-        #self.lock = threading.Lock()
 
 
     def __getstate__(self):

@@ -1,7 +1,9 @@
+import pickle
 import socket
 import threading
-import pickle
-from Channel import Channel
+
+from server.Channel import Channel
+
 
 class ThreadedServer(object):
     def __init__(self, host, port):

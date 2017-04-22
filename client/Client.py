@@ -9,7 +9,7 @@ from time import sleep
 from client.NewMessageEvent import NewMessageEvent
 
 class Client():
-
+    command_prefix = "!"
     def __init__(self):
         self.view = ConnectionFrame(self)
         self.userNameString = StringVar()
@@ -74,7 +74,12 @@ class Client():
 
 
     def sendMessage(self):
-        messageToSend = Message(self.userNameString.get(), self.currentChannel.get(), self.currentmessage.get())
+        string = self.currentmessage.get()
+        isCommand = False
+        if string.startswith(self.command_prefix):
+            isCommand = True
+            string = string.strip(self.command_prefix)
+        messageToSend = Message(self.userNameString.get(), self.currentChannel.get(), string,isCommand)
         self.client.send(pickle.dumps(messageToSend))
         print(str(messageToSend))
         self.currentmessage.set("")

@@ -22,6 +22,8 @@ class ThreadedServer(object):
             client.send(pickle.dumps(self.channels))
             welcomeMessage = Message("SERVER",self.channels[0],"Bienvenue sur le serveur de chat !!")
             client.send(pickle.dumps(welcomeMessage))
+            for channel in self.channels:
+                channel.clients += [client]
             '''
             for channel in self.channels:
                 channel.lock.acquire()

@@ -13,6 +13,7 @@ class ThreadedServer(object):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind((self.host, self.port))
+        self.clientDict = dict()
 
 
     def listen(self):
@@ -20,13 +21,11 @@ class ThreadedServer(object):
         while True:
             client, address = self.sock.accept()
             username = pickle.dumps(client.recv(4096))
+            self.clientDict[username] = client
             client.send(pickle.dumps(self.channels))
             welcomeMessage = Message("SERVER",self.channels[0],"Bienvenue sur le serveur de chat !!")
             client.send(pickle.dumps(welcomeMessage))
-            for channel in self.channels:
-                channel.clients += [client]
 
-            #client.settimeout(60)
             threading.Thread(target = self.listenToClient,args = (client,address)).start()
 
     def listenToClient(self, client, address):
@@ -51,7 +50,8 @@ class ThreadedServer(object):
                 print(type(ex))
                 print(ex)
                 for channel in self.channels:
-                    channel.clients.remove(client)
+                    if client in channel.clients:
+                        channel.clients.remove(client)
                 client.close()
                 return False
 
@@ -65,6 +65,15 @@ class ThreadedServer(object):
         channel = next(filter(lambda x: x.name == message.channel, self.channels))
         for clientToSend in channel.clients:
             clientToSend.send(pickle.dumps(message))
+
+    def register(self, **kwargs):
+        channel = next(filter(lambda x: x.name == kwargs.get("channel"), self.channels))
+        channel.clients.add(self.clientDict[kwargs.get("author")])
+
+    def unregister(self, **kwargs):
+        channel = next(filter(lambda x: x.name == kwargs.get("channel"), self.channels))
+        if self.clientDict[kwargs.get("author")] in channel.clients:
+            channel.clients.remove(self.clientDict[kwargs.get("author")])
 
     def processCommand(self,commande):
         try:

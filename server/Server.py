@@ -25,6 +25,7 @@ class ThreadedServer(object):
             client.send(pickle.dumps(self.channels))
             welcomeMessage = Message("SERVER",self.channels[0],"Bienvenue sur le serveur de chat !!")
             client.send(pickle.dumps(welcomeMessage))
+            self.channels[0].clients.append(client)
 
             threading.Thread(target = self.listenToClient,args = (client,address)).start()
 
@@ -41,8 +42,12 @@ class ThreadedServer(object):
                     else:
                         print(messageReceived)
                         channel = next(filter(lambda x: x.name == messageReceived.channel, self.channels))
-                        for clientToSend in channel.clients:
-                            clientToSend.send(pickle.dumps(messageReceived))
+                        if client in channel.clients:
+                            for clientToSend in channel.clients:
+                                clientToSend.send(pickle.dumps(messageReceived))
+                        else:
+                            messageToSend = Message("SERVER", channel, "Abonne toi pour parler ici !")
+                            client.send(pickle.dumps(messageToSend))
 
                 else:
                     raise Exception('Client disconnected')
@@ -68,7 +73,7 @@ class ThreadedServer(object):
 
     def register(self, **kwargs):
         channel = next(filter(lambda x: x.name == kwargs.get("channel"), self.channels))
-        channel.clients.add(self.clientDict[kwargs.get("author")])
+        channel.clients.append(self.clientDict[kwargs.get("author")])
 
     def unregister(self, **kwargs):
         channel = next(filter(lambda x: x.name == kwargs.get("channel"), self.channels))

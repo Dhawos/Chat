@@ -48,6 +48,7 @@ class ThreadedServer(object):
                 else:
                     raise Exception('Client disconnected')
             except Exception as ex:
+                print(type(ex))
                 print(ex)
                 for channel in self.channels:
                     channel.clients.remove(client)
@@ -76,10 +77,9 @@ class ThreadedServer(object):
                 key = splitted_argument[0]
                 value = splitted_argument[1]
                 dict[key] = value
-            dict["channel"] = commande.channel
-            return method_to_call(dict)
-        else:
-            return method_to_call(channel=commande.channel)
+        dict["author"] = commande.author
+        dict["channel"] = commande.channel
+        return method_to_call(**dict)
 
 if __name__ == "__main__":
     port_num = 8080

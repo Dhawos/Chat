@@ -1,8 +1,11 @@
 import socket
 import threading
+import pickle
+from Channel import Channel
 
 class ThreadedServer(object):
     def __init__(self, host, port):
+        self.channels = [Channel("channel1"), Channel("channel2")]
         self.host = host
         self.port = port
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -14,6 +17,8 @@ class ThreadedServer(object):
         self.sock.listen(5)
         while True:
             client, address = self.sock.accept()
+            client.send(pickle.dumps(self.channels))
+            print("sent channels : " + str(self.channels))
             #client.settimeout(60)
             threading.Thread(target = self.listenToClient,args = (client,address)).start()
 
@@ -25,11 +30,13 @@ class ThreadedServer(object):
                 data = client.recv(size)
                 if data:
                     # Set the response to echo back the recieved data
+                    print(pickle.loads(data))
+                    '''
                     response = data
                     client.send(response)
+                    '''
                 else:
-                    print("no data")
-                    #raise error('Client disconnected')
+                    raise Exception('Client disconnected')
             except:
                 client.close()
                 return False

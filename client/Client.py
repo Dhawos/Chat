@@ -35,7 +35,7 @@ class Client():
             self.client.connect((self.hostname.get(),self.port.get()))
             self.client.settimeout(1)
 
-            self.client.send(pickle.dumps(self.userNameString.get()))
+            self.client.send(self.userNameString.get().encode())
             #Retrieving channels list
             response = self.client.recv(4096)
             self.channels = pickle.loads(response)

@@ -13,14 +13,14 @@ class ThreadedServer(object):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind((self.host, self.port))
-        self.clientDict = dict()
+        self.clientDict = {}
 
 
     def listen(self):
         self.sock.listen(5)
         while True:
             client, address = self.sock.accept()
-            username = pickle.dumps(client.recv(4096))
+            username = client.recv(4096).decode()
             self.clientDict[username] = client
             client.send(pickle.dumps(self.channels))
             welcomeMessage = Message("SERVER",self.channels[0],"Bienvenue sur le serveur de chat !!")
@@ -84,9 +84,9 @@ class ThreadedServer(object):
         try:
             splittedCommande = commande.message.split(" ")
             method_to_call = getattr(self, splittedCommande[0])
+            dict = {}
             if(len(splittedCommande) > 1):
                 arguments = splittedCommande[1].split(",")
-                dict = {}
                 for argument in arguments :
                     splitted_argument = argument.split(":")
                     key = splitted_argument[0]

@@ -33,7 +33,7 @@ class Client():
             self.statusString.set("Connecting...")
             self.view.refresh()
             self.client.connect((self.hostname.get(),self.port.get()))
-
+            self.client.settimeout(1)
             #Retrieving channels list
             response = self.client.recv(4096)
             self.channels = pickle.loads(response)
@@ -59,10 +59,16 @@ class Client():
             self.statusString.set("Connection reset")
 
     def run(self):
-        while True:
-            response = self.client.recv(4096)
-            self.messages += [pickle.loads(response)]
-            self.fireEvent(NewMessageEvent())
+        self.running = True
+        while self.running:
+            try:
+                response = self.client.recv(4096)
+                self.messages += [pickle.loads(response)]
+                self.fireEvent(NewMessageEvent())
+            except socket.timeout:
+                if not self.running:
+                    self.client.close()
+
 
     def sendMessage(self):
         messageToSend = Message(self.userNameString.get(), self.currentChannel.get(), self.currentmessage.get())
@@ -73,7 +79,6 @@ class Client():
     def exit(self):
         self.running = False
         self.view.destroy()
-        print("exiting")
 
     def fireEvent(self,Event):
         for listener in self.listeners:

@@ -7,7 +7,7 @@ from server.Command import *
 
 class ThreadedServer(object):
     def __init__(self, host, port):
-        self.channels = [Channel("channel1"), Channel("channel2")]
+        self.channels = [Channel("general"), Channel("shitpost")]
         self.host = host
         self.port = port
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -43,10 +43,13 @@ class ThreadedServer(object):
                 data = client.recv(size)
                 if data:
                     messageReceived = pickle.loads(data)
-                    print(messageReceived)
-                    channel = next(filter(lambda x: x.name == messageReceived.channel, self.channels))
-                    for clientToSend in channel.clients:
-                        clientToSend.send(pickle.dumps(messageReceived))
+                    if messageReceived.isCommand:
+                        self.processCommand(messageReceived)
+                    else:
+                        print(messageReceived)
+                        channel = next(filter(lambda x: x.name == messageReceived.channel, self.channels))
+                        for clientToSend in channel.clients:
+                            clientToSend.send(pickle.dumps(messageReceived))
 
                 else:
                     raise Exception('Client disconnected')
@@ -55,11 +58,21 @@ class ThreadedServer(object):
                 client.close()
                 return False
 
-    @check_channel("channel1")
-    def date(self):
+    @check_channel("general")
+    def date(self,**kwargs):
         date = datetime.now()
-        message = Message("SERVER",self.channels[0],date.strftime("Today is : %d/%m"))
-        #Envoyer le message au channel
+        message = Message("SERVER",kwargs.get("channel"),date.strftime("Today is : %d/%m"))
+        self.postMessage(message)
+
+    def postMessage(self,message):
+        channel = next(filter(lambda x: x.name == message.channel, self.channels))
+        for clientToSend in channel.clients:
+            clientToSend.send(pickle.dumps(message))
+
+    def processCommand(self,commande):
+        splittedCommande = commande.message.split(" ")
+        method_to_call = getattr(self, splittedCommande[0])
+        return method_to_call(channel=commande.channel)
 
 if __name__ == "__main__":
     port_num = 8080

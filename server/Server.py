@@ -3,7 +3,7 @@ import socket
 import threading
 from Message import Message
 from server.Channel import Channel
-
+from server.Command import *
 
 class ThreadedServer(object):
     def __init__(self, host, port):
@@ -50,6 +50,11 @@ class ThreadedServer(object):
                 client.close()
                 return False
 
+    @check_channel("channel1")
+    def date(self):
+        date = datetime.now()
+        message = Message("SERVER",self.channels[0],date.strftime("Today is : %d/%m"))
+        #Envoyer le message au channel
 
 if __name__ == "__main__":
     port_num = 8080

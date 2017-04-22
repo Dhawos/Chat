@@ -6,7 +6,7 @@ from client.ui.ChatFrame import ChatFrame
 from Message import Message
 import threading
 from time import sleep
-
+from client.NewMessageEvent import NewMessageEvent
 
 class Client():
 
@@ -17,12 +17,12 @@ class Client():
         self.port = IntVar(value=8080)
         self.statusString = StringVar(value="Waiting...")
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.currentmessage = StringVar()
         self.currentChannel = StringVar(value="general")
         self.messages = []
         self.channels = []
         self.thread = threading.Thread(target = self.run)
+        self.listeners = []
 
 
 
@@ -38,29 +38,31 @@ class Client():
             response = self.client.recv(4096)
             self.channels = pickle.loads(response)
 
-            self.statusString.set("Chat connected to  : " + str(self.client.getpeername()[0]) + ":" + str(self.client.getpeername()[1]) )
+            self.statusString.set("Chat connected to  : " + str(self.client.getpeername()[0]) + ":" + str(self.client.getpeername()[1]))
+
             self.view.destroy()
             self.view = ChatFrame(self)
+
+
             self.currentmessage = StringVar()
             self.currentChannel = StringVar(value=str(self.channels[0]))
+
             self.view.init()
-            self.thread.start()
+
         except IndexError:
             self.statusString.set("Bad hostname/port")
         except ValueError:
             self.statusString.set("Bad Nickname")
         except ConnectionRefusedError:
             self.statusString.set("Connection refused")
+        except ConnectionResetError:
+            self.statusString.set("Connection reset")
 
     def run(self):
-        self.running = True
-        while self.running:
+        while True:
             response = self.client.recv(4096)
-            if response:
-                self.messages += [pickle.loads(response)]
-            else:
-                print("Nothing received")
-            sleep(10)
+            self.messages += [pickle.loads(response)]
+            self.fireEvent(NewMessageEvent())
 
     def sendMessage(self):
         messageToSend = Message(self.userNameString.get(), self.currentChannel.get(), self.currentmessage.get())
@@ -70,10 +72,15 @@ class Client():
 
     def exit(self):
         self.running = False
-        self.client.close()
         self.view.destroy()
         print("exiting")
 
+    def fireEvent(self,Event):
+        for listener in self.listeners:
+            listener.notify()
+
+    def registerListener(self,listener):
+        self.listeners += [listener]
 
 client = Client()
 client.view.init()

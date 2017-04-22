@@ -24,14 +24,7 @@ class ThreadedServer(object):
             client.send(pickle.dumps(welcomeMessage))
             for channel in self.channels:
                 channel.clients += [client]
-            '''
-            for channel in self.channels:
-                channel.lock.acquire()
-                try:
-                    channel.clients.add(client)
-                finally:
-                    channel.lock.release()
-            '''
+
             #client.settimeout(60)
             threading.Thread(target = self.listenToClient,args = (client,address)).start()
 
@@ -52,6 +45,8 @@ class ThreadedServer(object):
                     raise Exception('Client disconnected')
             except Exception as ex:
                 print(ex)
+                for channel in self.channels:
+                    channel.clients.remove(client)
                 client.close()
                 return False
 

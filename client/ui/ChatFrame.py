@@ -16,8 +16,11 @@ class ChatFrame(MyFrame):
 
         self.chatFrame = ttk.Labelframe(self.mainframe, text='Chat',width = 1000,height = 800)
         self.chatFrame.grid(column = 0,row = 0,columnspan = 12)
-        self.chatField = Text(self.chatFrame)
+        self.chatField = Text(self.chatFrame,width=80)
         self.chatField.grid(column = 0,row = 0)
+        self.scrollBar = ttk.Scrollbar(self.chatFrame, orient=VERTICAL, command=self.chatField.yview)
+        self.scrollBar.grid(column=1,row=0)
+        self.chatField['yscrollcommand'] = self.scrollBar.set
         self.chatField.config(state=DISABLED)
 
         self.messagelabel = ttk.Label(self.mainframe, text="Answer : ")
@@ -33,7 +36,19 @@ class ChatFrame(MyFrame):
 
         self.root.bind('<Return>', self.onReturnPressed)
         self.messagefield.focus()
+        for message in self.model.messages:
+            self.chatField.insert('end', str(message))
+        self.model.registerListener(self)
+        self.model.thread.start()
         self.root.mainloop()
 
     def onReturnPressed(self, event):
         self.model.sendMessage()
+
+    def notify(self):
+        self.chatField.config(state=NORMAL)
+        for message in self.model.messages:
+            self.chatField.insert('end', str(message)+'\n')
+            self.mainframe.update()
+        self.chatField.config(state=DISABLED)
+

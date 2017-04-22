@@ -1,7 +1,7 @@
 import pickle
 import socket
 import threading
-
+from Message import Message
 from server.Channel import Channel
 
 
@@ -20,6 +20,8 @@ class ThreadedServer(object):
         while True:
             client, address = self.sock.accept()
             client.send(pickle.dumps(self.channels))
+            welcomeMessage = Message("SERVER",self.channels[0],"Bienvenue sur le serveur de chat !!")
+            client.send(pickle.dumps(welcomeMessage))
             print("sent channels : " + str(self.channels))
             #client.settimeout(60)
             threading.Thread(target = self.listenToClient,args = (client,address)).start()

@@ -22,7 +22,14 @@ class ThreadedServer(object):
             client.send(pickle.dumps(self.channels))
             welcomeMessage = Message("SERVER",self.channels[0],"Bienvenue sur le serveur de chat !!")
             client.send(pickle.dumps(welcomeMessage))
-            print("sent channels : " + str(self.channels))
+            '''
+            for channel in self.channels:
+                channel.lock.acquire()
+                try:
+                    channel.clients.add(client)
+                finally:
+                    channel.lock.release()
+            '''
             #client.settimeout(60)
             threading.Thread(target = self.listenToClient,args = (client,address)).start()
 
